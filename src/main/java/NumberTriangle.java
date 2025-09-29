@@ -1,4 +1,7 @@
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is the provided NumberTriangle class to be used in this coding task.
@@ -88,7 +91,15 @@ public class NumberTriangle {
      *
      */
     public int retrieve(String path) {
-        // TODO implement this method
+        if (path.isEmpty()) {
+            return this.root;
+        }
+        int i = 0;
+        if(path.charAt(i) == ('l')){
+            return this.left.retrieve(path.substring(i+1));
+        } else if(path.charAt(i) == ('r')){
+            return this.right.retrieve(path.substring(i+1));
+        }
         return -1;
     }
 
@@ -108,26 +119,44 @@ public class NumberTriangle {
         // are more convenient to work with when reading the file contents.
         InputStream inputStream = NumberTriangle.class.getClassLoader().getResourceAsStream(fname);
         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+        List<String[]> lst_of_lines = new ArrayList<>();
 
-
-        // TODO define any variables that you want to use to store things
-
-        // will need to return the top of the NumberTriangle,
-        // so might want a variable for that.
         NumberTriangle top = null;
-
         String line = br.readLine();
         while (line != null) {
-
-            // remove when done; this line is included so running starter code prints the contents of the file
-            System.out.println(line);
-
-            // TODO process the line
-
-            //read the next line
+            lst_of_lines.add(line.split("\\s"));
             line = br.readLine();
         }
         br.close();
+        // convert the list to a list of ints
+        ArrayList<int[]> lst_of_lines_int = new ArrayList<>();
+        for(int i = 0; i < lst_of_lines.size(); i++){
+            int[] sublist = new int[lst_of_lines.get(i).length];
+            for(int j = 0; j < lst_of_lines.get(i).length; j++){
+                sublist[j] = Integer.parseInt(lst_of_lines.get(i)[j]);
+            }
+            lst_of_lines_int.add(sublist);
+        }
+        // construct triangles
+        List<NumberTriangle> previous_row = new ArrayList<>();
+        int[] last_row = lst_of_lines_int.get(lst_of_lines_int.size()-1);
+        for (int num : last_row) {
+            previous_row.add(new NumberTriangle(num));
+        }
+        for (int r=lst_of_lines_int.size() - 2; r >= 0; r--) {
+            List<NumberTriangle> curr_row = new ArrayList<>();
+            int[] nums = lst_of_lines_int.get(r);
+            for (int i = 0; i < nums.length; i++) {
+                NumberTriangle curr = new NumberTriangle(nums[i]);
+                curr_row.add(curr);
+                curr.setLeft(previous_row.get(i));
+                curr.setRight(previous_row.get(i+1));
+            }
+            previous_row = curr_row;
+        }
+        if (!previous_row.isEmpty()){
+            top =  previous_row.get(0);
+        }
         return top;
     }
 
